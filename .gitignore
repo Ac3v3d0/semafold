@@ -1,0 +1,36 @@
+# macOS / editor noise
+.DS_Store
+.idea/
+.vscode/
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyright/
+.coverage
+.coverage.*
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Build and packaging artifacts
+build/
+dist/
+*.egg-info/
+pip-wheel-metadata/
+
+# Benchmark and local experiment outputs
+benchmarks/output/
+benchmarks/results/
+benchmarks/.artifacts/
+
+# Local temporary files
+*.log
+*.tmp
