@@ -1,0 +1,13 @@
+Semafold
+Copyright 2026 Mindtro GmbH
+
+This package is licensed under the Apache License, Version 2.0.
+See the LICENSE file in this directory for the full license text.
+
+Semafold includes TurboQuant-inspired implementations and benchmark references
+based on the following research paper:
+
+TurboQuant: Online Vector Quantization with Near-optimal Distortion Rate
+Amir Zandieh, Majid Daliri, Majid Hadian, Vahab Mirrokni
+arXiv:2504.19874
+https://arxiv.org/abs/2504.19874
