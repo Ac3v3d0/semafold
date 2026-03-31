@@ -1,6 +1,9 @@
 # Semafold
 
 [![CI](https://github.com/mindtro/semafold/actions/workflows/ci.yml/badge.svg)](https://github.com/mindtro/semafold/actions/workflows/ci.yml)
+[![tests](https://img.shields.io/badge/tests-151%20passed-brightgreen)](https://github.com/mindtro/semafold/actions)
+[![python](https://img.shields.io/badge/python-3.10%2B-blue)](https://github.com/mindtro/semafold)
+[![license](https://img.shields.io/badge/license-Apache--2.0-green)](LICENSE)
 
 **Vector-first compression for embeddings, retrieval, and KV-cache workloads.**
 
