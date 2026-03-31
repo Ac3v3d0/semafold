@@ -1,5 +1,7 @@
 # Semafold
 
+[![CI](https://github.com/mindtro/semafold/actions/workflows/ci.yml/badge.svg)](https://github.com/mindtro/semafold/actions/workflows/ci.yml)
+
 **Vector-first compression for embeddings, retrieval, and KV-cache workloads.**
 
 Semafold is a vector-first compression toolkit for AI workloads that compresses embeddings, retrieval representations, and cache-shaped KV tensors with explicit byte accounting, typed encode/decode contracts, and validation evidence. It is designed for teams building AI infrastructure that need measurable storage reduction without losing visibility into distortion, artifact size, or integration boundaries.
