@@ -18,6 +18,7 @@ It gives you:
 - measured byte accounting
 - explicit guarantees and validation evidence
 - deterministic synthetic validation and benchmarks
+- pure NumPy — no GPU, no CUDA, runs anywhere
 
 Distribution / import names today:
 - distribution: `semafold`
