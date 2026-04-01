@@ -16,11 +16,17 @@ def _venv_python(venv_root: Path) -> Path:
 
 
 def _run_checked(command: list[str], *, cwd: Path) -> subprocess.CompletedProcess[str]:
+    import os
+    env = os.environ.copy()
+    env.pop("VIRTUAL_ENV", None)
+    env.pop("PYTHONPATH", None)
+
     completed = subprocess.run(
         command,
         cwd=cwd,
         capture_output=True,
         text=True,
+        env=env,
     )
     if completed.returncode != 0:
         raise AssertionError(

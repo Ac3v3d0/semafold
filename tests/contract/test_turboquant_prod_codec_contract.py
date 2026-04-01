@@ -3,6 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+from semafold import EncodeMetric, EncodeObjective, EncodingSegmentKind
 from semafold import VectorDecodeRequest, VectorEncodeRequest, VectorEncoding
 from semafold.errors import CompatibilityError, DecodeError
 from semafold.turboquant import TurboQuantProdConfig, TurboQuantProdVectorCodec
@@ -25,7 +26,7 @@ def _encoded_dict(
     codec = TurboQuantProdVectorCodec(
         config=TurboQuantProdConfig(total_bits_per_scalar=3, default_rotation_seed=7, default_qjl_seed=11)
     )
-    request = VectorEncodeRequest(data=_sample_matrix(dtype), objective="inner_product_estimation", metric="dot_product_error")
+    request = VectorEncodeRequest(data=_sample_matrix(dtype), objective=EncodeObjective.INNER_PRODUCT_ESTIMATION, metric=EncodeMetric.DOT_PRODUCT_ERROR)
     return codec, codec.encode(request).to_dict()
 
 
@@ -54,8 +55,8 @@ def test_turboquant_prod_codec_emits_valid_preview_encoding() -> None:
     )
     request = VectorEncodeRequest(
         data=_sample_matrix(np.float32),
-        objective="inner_product_estimation",
-        metric="dot_product_error",
+        objective=EncodeObjective.INNER_PRODUCT_ESTIMATION,
+        metric=EncodeMetric.DOT_PRODUCT_ERROR,
     )
 
     encoding = codec.encode(request)
@@ -68,11 +69,11 @@ def test_turboquant_prod_codec_emits_valid_preview_encoding() -> None:
     assert encoding.variant_id == "prod_qjl_residual_v1"
     assert encoding.encoding_schema_version == "vector.encoding.v1"
     assert {segment.segment_kind for segment in encoding.segments} == {
-        "compressed",
-        "sidecar",
-        "residual_sketch",
-        "residual_gamma",
-        "metadata",
+        EncodingSegmentKind.COMPRESSED,
+        EncodingSegmentKind.SIDECAR,
+        EncodingSegmentKind.RESIDUAL_SKETCH,
+        EncodingSegmentKind.RESIDUAL_GAMMA,
+        EncodingSegmentKind.METADATA,
     }
     assert any(guarantee.metric == "estimator_unbiasedness" for guarantee in encoding.guarantees)
     assert {item.scope for item in encoding.evidence} == {
@@ -92,11 +93,11 @@ def test_turboquant_prod_codec_emits_valid_preview_encoding() -> None:
 
 def test_turboquant_prod_accepts_only_inner_product_objective_and_dot_product_metric() -> None:
     codec = TurboQuantProdVectorCodec()
-    bad_objective = VectorEncodeRequest(data=_sample_matrix(np.float32), objective="reconstruction")
+    bad_objective = VectorEncodeRequest(data=_sample_matrix(np.float32), objective=EncodeObjective.RECONSTRUCTION)
     bad_metric = VectorEncodeRequest(
         data=_sample_matrix(np.float32),
-        objective="inner_product_estimation",
-        metric="mse",
+        objective=EncodeObjective.INNER_PRODUCT_ESTIMATION,
+        metric=EncodeMetric.MSE,
     )
 
     with pytest.raises(CompatibilityError):
@@ -110,8 +111,8 @@ def test_turboquant_prod_codec_compresses_deterministic_dummy_vector_batches() -
     data = rng.normal(size=(32, 64)).astype(np.float32)
     request = VectorEncodeRequest(
         data=data,
-        objective="inner_product_estimation",
-        metric="dot_product_error",
+        objective=EncodeObjective.INNER_PRODUCT_ESTIMATION,
+        metric=EncodeMetric.DOT_PRODUCT_ERROR,
         role="embedding",
         seed=29,
     )
@@ -182,7 +183,7 @@ def test_turboquant_prod_decode_is_artifact_driven() -> None:
         config=TurboQuantProdConfig(total_bits_per_scalar=5, default_rotation_seed=17, default_qjl_seed=23)
     )
     encoding = producer.encode(
-        VectorEncodeRequest(data=_sample_matrix(np.float32), objective="inner_product_estimation", metric="dot_product_error")
+        VectorEncodeRequest(data=_sample_matrix(np.float32), objective=EncodeObjective.INNER_PRODUCT_ESTIMATION, metric=EncodeMetric.DOT_PRODUCT_ERROR)
     )
     decoded = consumer.decode(VectorDecodeRequest(encoding=encoding))
 

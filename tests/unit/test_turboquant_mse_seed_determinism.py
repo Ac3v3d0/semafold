@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from semafold import EncodeObjective
 from semafold import VectorEncodeRequest
 from semafold.turboquant import TurboQuantMSEConfig
 from semafold.turboquant import TurboQuantMSEVectorCodec
@@ -19,7 +20,7 @@ def test_turboquant_mse_seeded_encoding_is_deterministic() -> None:
     )
     request = VectorEncodeRequest(
         data=_normalized_vector(),
-        objective="reconstruction",
+        objective=EncodeObjective.RECONSTRUCTION,
         role="embedding",
         seed=17,
     )
@@ -37,7 +38,7 @@ def test_turboquant_mse_seeded_estimate_is_deterministic() -> None:
     )
     request = VectorEncodeRequest(
         data=_normalized_vector(),
-        objective="storage_only",
+        objective=EncodeObjective.STORAGE_ONLY,
         role="embedding",
         seed=17,
     )

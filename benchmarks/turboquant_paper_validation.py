@@ -10,6 +10,7 @@ import numpy as np
 
 from semafold import __version__
 from semafold import VectorDecodeRequest, VectorEncodeRequest
+from semafold.vector.models import EncodeObjective, EncodeMetric
 from semafold.turboquant import (
     TurboQuantMSEConfig,
     TurboQuantMSEVectorCodec,
@@ -44,7 +45,7 @@ def _mse_record(*, rows: np.ndarray, bits_per_scalar: int, rotation_seed: int) -
             default_rotation_seed=rotation_seed,
         )
     )
-    request = VectorEncodeRequest(data=rows, objective="reconstruction", metric="mse")
+    request = VectorEncodeRequest(data=rows, objective=EncodeObjective.RECONSTRUCTION, metric=EncodeMetric.MSE)
 
     encode_start = time.perf_counter()
     encoding = codec.encode(request)
@@ -87,8 +88,8 @@ def _prod_record(
     )
     request = VectorEncodeRequest(
         data=rows,
-        objective="inner_product_estimation",
-        metric="dot_product_error",
+        objective=EncodeObjective.INNER_PRODUCT_ESTIMATION,
+        metric=EncodeMetric.DOT_PRODUCT_ERROR,
     )
 
     encode_start = time.perf_counter()

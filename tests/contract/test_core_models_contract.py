@@ -2,9 +2,12 @@ from __future__ import annotations
 
 from semafold import CompressionBudget
 from semafold import CompressionGuarantee
+from semafold import EncodingBoundType
 from semafold import ValidationEvidence
 from semafold.core.accounting import CompressionEstimate
 from semafold.core.accounting import CompressionFootprint
+from semafold.core.models import EncodingBoundType, WorkloadSuitability
+from semafold.vector.models import EncodeObjective
 
 
 def test_core_models_roundtrip_dicts() -> None:
@@ -22,9 +25,9 @@ def test_core_models_roundtrip_dicts() -> None:
         compression_ratio=64 / 24,
     )
     guarantee = CompressionGuarantee(
-        objective="reconstruction",
+        objective=EncodeObjective.RECONSTRUCTION,
         metric="observed_mse",
-        bound_type="observed",
+        bound_type=EncodingBoundType.OBSERVED,
         value=0.1,
     )
     evidence = ValidationEvidence(scope="compatibility", metrics={"passed": True})

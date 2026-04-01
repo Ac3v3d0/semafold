@@ -10,9 +10,12 @@ from semafold.core import (
     CompressionGuarantee,
     ValidationEvidence,
 )
+from semafold.core.models import EncodingBoundType, WorkloadSuitability
 from semafold.core.accounting import aggregate_footprints, json_byte_size, segment_footprint
 from semafold.errors import CompatibilityError, DecodeError
 from semafold.vector.models import (
+    EncodeObjective,
+    EncodingSegmentKind,
     VectorDecodeRequest,
     VectorDecodeResult,
     VectorEncodeRequest,
@@ -49,7 +52,7 @@ class ScalarReferenceVectorCodec:
     codec_family = "scalar_reference"
     variant_id = "uniform_affine_u8_v1"
     encoding_schema_version = "vector.encoding.v1"
-    _supported_objectives = {"reconstruction", "storage_only"}
+    _supported_objectives = {EncodeObjective.RECONSTRUCTION, EncodeObjective.STORAGE_ONLY}
     _supported_dtypes = {
         np.dtype(np.float16),
         np.dtype(np.float32),
@@ -99,7 +102,7 @@ class ScalarReferenceVectorCodec:
         )
 
         compressed_segment = VectorEncodingSegment(
-            segment_kind="compressed",
+            segment_kind=EncodingSegmentKind.COMPRESSED,
             role=request.role,
             scope=self._full_scope(working),
             payload=compressed_bytes,
@@ -108,7 +111,7 @@ class ScalarReferenceVectorCodec:
             metadata={},
         )
         sidecar_segment = VectorEncodingSegment(
-            segment_kind="sidecar",
+            segment_kind=EncodingSegmentKind.SIDECAR,
             role=request.role,
             scope=self._full_scope(working),
             payload=sidecar_bytes,
@@ -117,7 +120,7 @@ class ScalarReferenceVectorCodec:
             metadata={},
         )
         metadata_segment = VectorEncodingSegment(
-            segment_kind="metadata",
+            segment_kind=EncodingSegmentKind.METADATA,
             role=request.role,
             scope={"kind": "encoding_metadata"},
             payload=metadata_payload,
@@ -144,17 +147,20 @@ class ScalarReferenceVectorCodec:
             CompressionGuarantee(
                 objective=request.objective,
                 metric="observed_mse",
-                bound_type="observed",
+                bound_type=EncodingBoundType.OBSERVED,
                 value=mse,
                 units="squared_error",
                 scope="full_tensor",
-                workload_suitability=["embedding_storage", "reconstruction_only"],
+                workload_suitability=[
+                    WorkloadSuitability.EMBEDDING_STORAGE,
+                    WorkloadSuitability.RECONSTRUCTION_ONLY,
+                ],
                 notes="Observed reconstruction metric for the current payload.",
             ),
             CompressionGuarantee(
-                objective="storage_only",
+                objective=EncodeObjective.STORAGE_ONLY,
                 metric="accounting_exactness",
-                bound_type="exact",
+                bound_type=EncodingBoundType.EXACT,
                 value=True,
                 scope="envelope",
                 notes="Measured footprint is emitted exactly.",
@@ -220,9 +226,9 @@ class ScalarReferenceVectorCodec:
             raise CompatibilityError("encoding does not belong to ScalarReferenceVectorCodec")
         if encoding.encoding_schema_version != self.encoding_schema_version:
             raise CompatibilityError("unsupported encoding schema version")
-        compressed_segment = self._require_single_segment(encoding, "compressed")
-        sidecar_segment = self._require_single_segment(encoding, "sidecar")
-        metadata_segment = self._require_single_segment(encoding, "metadata")
+        compressed_segment = self._require_single_segment(encoding, EncodingSegmentKind.COMPRESSED)
+        sidecar_segment = self._require_single_segment(encoding, EncodingSegmentKind.SIDECAR)
+        metadata_segment = self._require_single_segment(encoding, EncodingSegmentKind.METADATA)
         if not isinstance(compressed_segment.payload, bytes):
             raise DecodeError("compressed payload must be bytes")
         if not isinstance(sidecar_segment.payload, bytes):
@@ -378,7 +384,7 @@ class ScalarReferenceVectorCodec:
     @staticmethod
     def _require_single_segment(
         encoding: VectorEncoding,
-        segment_kind: str,
+        segment_kind: EncodingSegmentKind,
     ) -> VectorEncodingSegment:
         matches = [
             segment

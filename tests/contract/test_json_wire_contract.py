@@ -6,6 +6,7 @@ from typing import TypeAlias
 import numpy as np
 import pytest
 
+from semafold import EncodeObjective, EncodingSegmentKind
 from semafold import PassthroughVectorCodec
 from semafold import VectorDecodeRequest
 from semafold import VectorEncodeRequest
@@ -21,17 +22,17 @@ CodecUnderTest: TypeAlias = PassthroughVectorCodec | ScalarReferenceVectorCodec
     [
         (
             PassthroughVectorCodec(),
-            VectorEncodeRequest(data=np.array([1.0, 2.0], dtype=np.float32), objective="reconstruction"),
-            {"passthrough", "metadata"},
+            VectorEncodeRequest(data=np.array([1.0, 2.0], dtype=np.float32), objective=EncodeObjective.RECONSTRUCTION),
+            {EncodingSegmentKind.PASSTHROUGH, EncodingSegmentKind.METADATA},
             True,
         ),
         (
             ScalarReferenceVectorCodec(),
             VectorEncodeRequest(
                 data=np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32),
-                objective="reconstruction",
+                objective=EncodeObjective.RECONSTRUCTION,
             ),
-            {"compressed", "sidecar", "metadata"},
+            {EncodingSegmentKind.COMPRESSED, EncodingSegmentKind.SIDECAR, EncodingSegmentKind.METADATA},
             False,
         ),
     ],
@@ -39,7 +40,7 @@ CodecUnderTest: TypeAlias = PassthroughVectorCodec | ScalarReferenceVectorCodec
 def test_consumer_can_transport_inspect_and_decode_vector_encoding(
     codec: CodecUnderTest,
     encode_request: VectorEncodeRequest,
-    expected_segment_kinds: set[str],
+    expected_segment_kinds: set[EncodingSegmentKind],
     exact_roundtrip: bool,
 ) -> None:
     encoding = codec.encode(encode_request)
@@ -68,9 +69,9 @@ def test_consumer_can_transport_inspect_and_decode_vector_encoding(
 
     restored_segments = {segment.segment_kind: segment for segment in restored.segments}
     assert set(restored_segments) == expected_segment_kinds
-    assert isinstance(restored_segments["metadata"].payload, dict)
+    assert isinstance(restored_segments[EncodingSegmentKind.METADATA].payload, dict)
     for segment_kind, segment in restored_segments.items():
-        if segment_kind == "metadata":
+        if segment_kind == EncodingSegmentKind.METADATA:
             continue
         assert isinstance(segment.payload, bytes)
 
@@ -84,7 +85,7 @@ def test_consumer_can_transport_inspect_and_decode_vector_encoding(
 
 def test_vector_encoding_from_dict_rejects_non_string_identity_fields() -> None:
     codec = PassthroughVectorCodec()
-    encoding = codec.encode(VectorEncodeRequest(data=np.array([1.0, 2.0], dtype=np.float32), objective="reconstruction"))
+    encoding = codec.encode(VectorEncodeRequest(data=np.array([1.0, 2.0], dtype=np.float32), objective=EncodeObjective.RECONSTRUCTION))
     wire = encoding.to_dict()
     wire["codec_family"] = 123
 
@@ -94,7 +95,7 @@ def test_vector_encoding_from_dict_rejects_non_string_identity_fields() -> None:
 
 def test_vector_segment_from_dict_rejects_non_string_required_fields() -> None:
     segment = VectorEncodingSegment(
-        segment_kind="metadata",
+        segment_kind=EncodingSegmentKind.METADATA,
         role=None,
         scope={"kind": "encoding_metadata"},
         payload={"shape": [2]},

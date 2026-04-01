@@ -19,6 +19,11 @@ EXPECTED_ROOT_ALL = {
     "CompressionEstimate",
     "CompressionFootprint",
     "CompressionGuarantee",
+    "EncodeObjective",
+    "WorkloadSuitability",
+    "EncodeMetric",
+    "EncodingBoundType",
+    "EncodingSegmentKind",
     "PassthroughVectorCodec",
     "ValidationEvidence",
     "VectorCodec",
@@ -101,8 +106,9 @@ def test_turboquant_kv_preview_codec_emits_preview_artifact_and_keeps_root_api_s
     assert artifact.value_encoding.codec_family == "turboquant"
     assert artifact.key_encoding.variant_id == "prod_qjl_residual_v1"
     assert artifact.value_encoding.variant_id == "mse_beta_lloyd_qr_v2"
-    assert artifact.key_encoding.metadata["objective"] == "inner_product_estimation"
-    assert artifact.value_encoding.metadata["objective"] == "reconstruction"
+    from semafold.vector.models import EncodeObjective
+    assert artifact.key_encoding.metadata["objective"] == EncodeObjective.INNER_PRODUCT_ESTIMATION
+    assert artifact.value_encoding.metadata["objective"] == EncodeObjective.RECONSTRUCTION
     assert {segment.role for segment in artifact.key_encoding.segments} == {"key_cache"}
     assert {segment.role for segment in artifact.value_encoding.segments} == {"value_cache"}
     assert artifact.footprint.total_bytes == (

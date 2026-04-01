@@ -12,6 +12,8 @@ Stable surface:
 - `CompressionFootprint`
 - `CompressionGuarantee`
 - `ValidationEvidence`
+- `EncodingBoundType`
+- `WorkloadSuitability`
 - `VectorEncodeRequest`
 - `VectorEncodingSegment`
 - `VectorEncoding`
@@ -19,6 +21,9 @@ Stable surface:
 - `VectorDecodeResult`
 - `VectorCodec`
 - `PassthroughVectorCodec`
+- `EncodeObjective`
+- `EncodeMetric`
+- `EncodingSegmentKind`
 
 ## Intentionally Not Stable
 

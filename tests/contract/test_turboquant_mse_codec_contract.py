@@ -5,6 +5,7 @@ import base64
 import numpy as np
 import pytest
 
+from semafold import EncodeMetric, EncodeObjective, EncodingSegmentKind
 from semafold import VectorCodec
 from semafold import VectorDecodeRequest
 from semafold import VectorEncodeRequest
@@ -35,8 +36,8 @@ def _encoded_dict(
     )
     request = VectorEncodeRequest(
         data=_sample_matrix(dtype),
-        objective="reconstruction",
-        metric="mse",
+        objective=EncodeObjective.RECONSTRUCTION,
+        metric=EncodeMetric.MSE,
     )
     return codec, codec.encode(request).to_dict()
 
@@ -78,7 +79,7 @@ def test_turboquant_mse_codec_emits_valid_preview_encoding_across_supported_floa
     codec = TurboQuantMSEVectorCodec(
         config=TurboQuantMSEConfig(default_bits_per_scalar=2, default_rotation_seed=7)
     )
-    request = VectorEncodeRequest(data=_sample_matrix(dtype), objective="reconstruction", metric="mse")
+    request = VectorEncodeRequest(data=_sample_matrix(dtype), objective=EncodeObjective.RECONSTRUCTION, metric=EncodeMetric.MSE)
 
     assert isinstance(codec, VectorCodec)
 
@@ -91,7 +92,11 @@ def test_turboquant_mse_codec_emits_valid_preview_encoding_across_supported_floa
     assert np.array_equal(decoded.data[0], np.zeros((4,), dtype=request.data.dtype))
     assert encoding.codec_family == "turboquant"
     assert encoding.variant_id == "mse_beta_lloyd_qr_v2"
-    assert {segment.segment_kind for segment in encoding.segments} == {"compressed", "sidecar", "metadata"}
+    assert {segment.segment_kind for segment in encoding.segments} == {
+        EncodingSegmentKind.COMPRESSED,
+        EncodingSegmentKind.SIDECAR,
+        EncodingSegmentKind.METADATA,
+    }
     assert encoding.encoding_schema_version == "vector.encoding.v1"
     assert isinstance(encoding.config_fingerprint, str) and encoding.config_fingerprint
     assert encoding.footprint.baseline_bytes == int(request.data.nbytes)
@@ -103,7 +108,7 @@ def test_turboquant_mse_rejects_unsupported_objective() -> None:
     codec = TurboQuantMSEVectorCodec()
     request = VectorEncodeRequest(
         data=_sample_matrix(np.float32),
-        objective="inner_product_estimation",
+        objective=EncodeObjective.INNER_PRODUCT_ESTIMATION,
         role="key_cache",
         seed=7,
     )
@@ -117,8 +122,8 @@ def test_turboquant_mse_codec_compresses_deterministic_dummy_vector_batches() ->
     data = rng.normal(size=(32, 64)).astype(np.float32)
     request = VectorEncodeRequest(
         data=data,
-        objective="reconstruction",
-        metric="mse",
+        objective=EncodeObjective.RECONSTRUCTION,
+        metric=EncodeMetric.MSE,
         role="embedding",
         seed=19,
     )

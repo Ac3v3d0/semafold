@@ -10,6 +10,7 @@ import numpy as np
 
 from semafold._version import __version__
 from semafold.core import CompressionEstimate, CompressionGuarantee, ValidationEvidence
+from semafold.core.models import EncodingBoundType, WorkloadSuitability
 from semafold.core.accounting import aggregate_footprints, json_byte_size, segment_footprint
 from semafold.errors import CompatibilityError, DecodeError
 from semafold.turboquant.codebook import TurboQuantScalarCodebook, solve_beta_lloyd_max_codebook
@@ -18,6 +19,9 @@ from semafold.turboquant.qjl import qjl_decode_rows, qjl_encode_rows, seeded_gau
 from semafold.turboquant.quantizer import dequantize_rows, normalize_rows, quantize_rows, restore_rows
 from semafold.turboquant.rotation import seeded_haar_rotation
 from semafold.vector.models import (
+    EncodeMetric,
+    EncodeObjective,
+    EncodingSegmentKind,
     VectorDecodeRequest,
     VectorDecodeResult,
     VectorEncodeRequest,
@@ -177,8 +181,8 @@ class TurboQuantProdVectorCodec:
     codec_family = "turboquant"
     variant_id = "prod_qjl_residual_v1"
     encoding_schema_version = "vector.encoding.v1"
-    _supported_objectives = {"inner_product_estimation"}
-    _supported_metrics = {None, "dot_product_error"}
+    _supported_objectives = {EncodeObjective.INNER_PRODUCT_ESTIMATION}
+    _supported_metrics = {None, EncodeMetric.DOT_PRODUCT_ERROR}
 
     def __init__(self, *, config: TurboQuantProdConfig | None = None) -> None:
         if config is not None and not isinstance(config, TurboQuantProdConfig):
@@ -260,7 +264,7 @@ class TurboQuantProdVectorCodec:
         )
 
         compressed_segment = VectorEncodingSegment(
-            segment_kind="compressed",
+            segment_kind=EncodingSegmentKind.COMPRESSED,
             role=request.role,
             scope=_full_scope(array_2d),
             payload=compressed_payload,
@@ -269,7 +273,7 @@ class TurboQuantProdVectorCodec:
             metadata={},
         )
         sidecar_segment = VectorEncodingSegment(
-            segment_kind="sidecar",
+            segment_kind=EncodingSegmentKind.SIDECAR,
             role=request.role,
             scope=_full_scope(array_2d),
             payload=sidecar_payload,
@@ -278,7 +282,7 @@ class TurboQuantProdVectorCodec:
             metadata={},
         )
         residual_sketch_segment = VectorEncodingSegment(
-            segment_kind="residual_sketch",
+            segment_kind=EncodingSegmentKind.RESIDUAL_SKETCH,
             role=request.role,
             scope=_full_scope(array_2d),
             payload=residual_sketch_payload,
@@ -287,7 +291,7 @@ class TurboQuantProdVectorCodec:
             metadata={},
         )
         residual_gamma_segment = VectorEncodingSegment(
-            segment_kind="residual_gamma",
+            segment_kind=EncodingSegmentKind.RESIDUAL_GAMMA,
             role=request.role,
             scope=_full_scope(array_2d),
             payload=residual_gamma_payload,
@@ -296,7 +300,7 @@ class TurboQuantProdVectorCodec:
             metadata={},
         )
         metadata_segment = VectorEncodingSegment(
-            segment_kind="metadata",
+            segment_kind=EncodingSegmentKind.METADATA,
             role=request.role,
             scope={"kind": "encoding_metadata"},
             payload=metadata_payload,
@@ -327,13 +331,16 @@ class TurboQuantProdVectorCodec:
 
         guarantees = [
             CompressionGuarantee(
-                objective="inner_product_estimation",
+                objective=EncodeObjective.INNER_PRODUCT_ESTIMATION,
                 metric="estimator_unbiasedness",
-                bound_type="theorem_reference",
+                bound_type=EncodingBoundType.THEOREM_REFERENCE,
                 value=True,
                 units=None,
                 scope="unit_norm_row",
-                workload_suitability=["vector_database", "query_time_inner_product"],
+                workload_suitability=[
+                    WorkloadSuitability.VECTOR_DATABASE,
+                    WorkloadSuitability.QUERY_TIME_INNER_PRODUCT,
+                ],
                 notes="Preview Theorem 2 reference under unit-norm rows with QJL residual correction; not a general-purpose runtime guarantee.",
             ),
         ]
@@ -462,11 +469,11 @@ class TurboQuantProdVectorCodec:
         if encoding.encoding_schema_version != self.encoding_schema_version:
             raise CompatibilityError("unsupported encoding schema version")
 
-        compressed_segment = self._require_single_segment(encoding, "compressed")
-        sidecar_segment = self._require_single_segment(encoding, "sidecar")
-        residual_sketch_segment = self._require_single_segment(encoding, "residual_sketch")
-        residual_gamma_segment = self._require_single_segment(encoding, "residual_gamma")
-        metadata_segment = self._require_single_segment(encoding, "metadata")
+        compressed_segment = self._require_single_segment(encoding, EncodingSegmentKind.COMPRESSED)
+        sidecar_segment = self._require_single_segment(encoding, EncodingSegmentKind.SIDECAR)
+        residual_sketch_segment = self._require_single_segment(encoding, EncodingSegmentKind.RESIDUAL_SKETCH)
+        residual_gamma_segment = self._require_single_segment(encoding, EncodingSegmentKind.RESIDUAL_GAMMA)
+        metadata_segment = self._require_single_segment(encoding, EncodingSegmentKind.METADATA)
 
         if not isinstance(compressed_segment.payload, bytes):
             raise DecodeError("compressed payload must be bytes")
@@ -727,7 +734,7 @@ class TurboQuantProdVectorCodec:
             raise DecodeError("rank-2 TurboQuant metadata is inconsistent")
 
     @staticmethod
-    def _require_single_segment(encoding: VectorEncoding, segment_kind: str) -> VectorEncodingSegment:
+    def _require_single_segment(encoding: VectorEncoding, segment_kind: EncodingSegmentKind) -> VectorEncodingSegment:
         matches = [segment for segment in encoding.segments if segment.segment_kind == segment_kind]
         if len(matches) != 1:
             raise DecodeError(f"expected exactly one {segment_kind!r} segment")

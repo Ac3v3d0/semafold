@@ -98,6 +98,8 @@ Stable today:
 - `CompressionFootprint`
 - `CompressionGuarantee`
 - `ValidationEvidence`
+- `EncodingBoundType`
+- `WorkloadSuitability`
 - `VectorEncodeRequest`
 - `VectorEncodingSegment`
 - `VectorEncoding`
@@ -105,6 +107,9 @@ Stable today:
 - `VectorDecodeResult`
 - `VectorCodec`
 - `PassthroughVectorCodec`
+- `EncodeObjective`
+- `EncodeMetric`
+- `EncodingSegmentKind`
 
 Available today, but intentionally outside the stable root surface:
 - `semafold.turboquant`
@@ -139,6 +144,7 @@ Run the exact file here: [examples/wire_roundtrip.py](examples/wire_roundtrip.py
 ```python
 import numpy as np
 
+from semafold import EncodeObjective
 from semafold import PassthroughVectorCodec
 from semafold import VectorDecodeRequest
 from semafold import VectorEncodeRequest
@@ -146,7 +152,7 @@ from semafold import VectorEncodeRequest
 codec = PassthroughVectorCodec()
 request = VectorEncodeRequest(
     data=np.linspace(-1.0, 1.0, 1024, dtype=np.float32),
-    objective="reconstruction",
+    objective=EncodeObjective.RECONSTRUCTION,
 )
 
 encoding = codec.encode(request)
@@ -162,6 +168,8 @@ Run the exact file here: [examples/turboquant_embedding.py](examples/turboquant_
 ```python
 import numpy as np
 
+from semafold import EncodeMetric
+from semafold import EncodeObjective
 from semafold import VectorDecodeRequest
 from semafold import VectorEncodeRequest
 from semafold.turboquant import TurboQuantMSEConfig
@@ -175,8 +183,8 @@ codec = TurboQuantMSEVectorCodec(
 encoding = codec.encode(
     VectorEncodeRequest(
         data=rows,
-        objective="reconstruction",
-        metric="mse",
+        objective=EncodeObjective.RECONSTRUCTION,
+        metric=EncodeMetric.MSE,
         role="embedding",
         seed=11,
     )

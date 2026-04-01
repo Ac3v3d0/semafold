@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import pytest
 
+from semafold import EncodingSegmentKind
 from semafold import VectorEncodingSegment
 
 
-def test_segment_requires_non_empty_kind() -> None:
-    with pytest.raises(TypeError):
+def test_segment_rejects_invalid_kind_string() -> None:
+    with pytest.raises(ValueError):
         VectorEncodingSegment(
-            segment_kind="",
+            segment_kind="not_a_valid_kind",  # type: ignore[arg-type]
             role=None,
             scope={},
             payload=b"abc",
@@ -19,7 +20,7 @@ def test_segment_requires_non_empty_kind() -> None:
 def test_segment_rejects_invalid_payload() -> None:
     with pytest.raises(TypeError):
         VectorEncodingSegment(
-            segment_kind="metadata",
+            segment_kind=EncodingSegmentKind.METADATA,
             role=None,
             scope={},
             payload=123,  # type: ignore[arg-type]

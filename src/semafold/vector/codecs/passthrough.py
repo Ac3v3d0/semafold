@@ -10,9 +10,12 @@ from semafold.core import (
     CompressionGuarantee,
     ValidationEvidence,
 )
+from semafold.core.models import EncodingBoundType, WorkloadSuitability
 from semafold.core.accounting import aggregate_footprints, json_byte_size, segment_footprint
 from semafold.errors import CompatibilityError, DecodeError
 from semafold.vector.models import (
+    EncodeObjective,
+    EncodingSegmentKind,
     VectorDecodeRequest,
     VectorDecodeResult,
     VectorEncodeRequest,
@@ -81,7 +84,7 @@ class PassthroughVectorCodec:
         array_2d, original_shape, original_rank = normalize_to_2d(request.data)
         raw_bytes = np.ascontiguousarray(request.data).tobytes()
         payload_segment = VectorEncodingSegment(
-            segment_kind="passthrough",
+            segment_kind=EncodingSegmentKind.PASSTHROUGH,
             role=request.role,
             scope=self._full_scope(array_2d),
             payload=raw_bytes,
@@ -96,7 +99,7 @@ class PassthroughVectorCodec:
             original_rank=original_rank,
         )
         metadata_segment = VectorEncodingSegment(
-            segment_kind="metadata",
+            segment_kind=EncodingSegmentKind.METADATA,
             role=request.role,
             scope={"kind": "encoding_metadata"},
             payload=metadata_payload,
@@ -112,16 +115,19 @@ class PassthroughVectorCodec:
             CompressionGuarantee(
                 objective=request.objective,
                 metric="exact_roundtrip",
-                bound_type="exact",
+                bound_type=EncodingBoundType.EXACT,
                 value=True,
                 scope="full_tensor",
-                workload_suitability=["embedding_storage", "reconstruction_only"],
+                workload_suitability=[
+                    WorkloadSuitability.EMBEDDING_STORAGE,
+                    WorkloadSuitability.RECONSTRUCTION_ONLY,
+                ],
                 notes="Passthrough preserves every scalar exactly.",
             ),
             CompressionGuarantee(
-                objective="storage_only",
+                objective=EncodeObjective.STORAGE_ONLY,
                 metric="accounting_exactness",
-                bound_type="exact",
+                bound_type=EncodingBoundType.EXACT,
                 value=True,
                 scope="envelope",
                 notes="Measured footprint is emitted exactly.",
@@ -181,8 +187,8 @@ class PassthroughVectorCodec:
             raise CompatibilityError("encoding does not belong to PassthroughVectorCodec")
         if encoding.encoding_schema_version != self.encoding_schema_version:
             raise CompatibilityError("unsupported encoding schema version")
-        payload_segment = self._require_single_segment(encoding, "passthrough")
-        metadata_segment = self._require_single_segment(encoding, "metadata")
+        payload_segment = self._require_single_segment(encoding, EncodingSegmentKind.PASSTHROUGH)
+        metadata_segment = self._require_single_segment(encoding, EncodingSegmentKind.METADATA)
         if not isinstance(payload_segment.payload, bytes):
             raise DecodeError("passthrough payload must be bytes")
         if not isinstance(metadata_segment.payload, dict):
@@ -276,7 +282,7 @@ class PassthroughVectorCodec:
     @staticmethod
     def _require_single_segment(
         encoding: VectorEncoding,
-        segment_kind: str,
+        segment_kind: EncodingSegmentKind,
     ) -> VectorEncodingSegment:
         matches = [
             segment

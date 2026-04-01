@@ -9,6 +9,7 @@ from semafold import VectorEncodeRequest
 from semafold.turboquant import TurboQuantMSEConfig
 from semafold.turboquant import TurboQuantMSEVectorCodec
 from semafold.turboquant.backends import get_backend
+from semafold.vector.models import EncodeObjective, EncodeMetric
 
 
 def _row_cosine_similarity(lhs: np.ndarray, rhs: np.ndarray) -> float:
@@ -54,8 +55,8 @@ def main() -> None:
     encoding = codec.encode(
         VectorEncodeRequest(
             data=rows,
-            objective="reconstruction",
-            metric="mse",
+            objective=EncodeObjective.RECONSTRUCTION,
+            metric=EncodeMetric.MSE,
             role="embedding",
             seed=11,
         )

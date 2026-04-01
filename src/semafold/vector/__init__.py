@@ -2,6 +2,9 @@
 
 from semafold.vector.codecs.passthrough import PassthroughVectorCodec
 from semafold.vector.models import (
+    EncodeMetric,
+    EncodeObjective,
+    EncodingSegmentKind,
     VectorDecodeRequest,
     VectorDecodeResult,
     VectorEncodeRequest,
@@ -11,6 +14,9 @@ from semafold.vector.models import (
 from semafold.vector.protocols import VectorCodec
 
 __all__ = [
+    "EncodeMetric",
+    "EncodeObjective",
+    "EncodingSegmentKind",
     "PassthroughVectorCodec",
     "VectorCodec",
     "VectorDecodeRequest",

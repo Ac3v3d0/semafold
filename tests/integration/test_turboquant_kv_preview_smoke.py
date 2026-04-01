@@ -5,6 +5,7 @@ import json
 import numpy as np
 import pytest
 
+from semafold import EncodeMetric, EncodeObjective
 from semafold import VectorDecodeRequest, VectorEncodeRequest
 from semafold.core.accounting import build_footprint
 from semafold.turboquant import (
@@ -67,16 +68,16 @@ def test_kv_artifact_roundtrip_wraps_separate_key_and_value_encodings() -> None:
     key_encoding = key_codec.encode(
         VectorEncodeRequest(
             data=key_rows,
-            objective="inner_product_estimation",
-            metric="dot_product_error",
+            objective=EncodeObjective.INNER_PRODUCT_ESTIMATION,
+            metric=EncodeMetric.DOT_PRODUCT_ERROR,
             role="key_cache",
         )
     )
     value_encoding = value_codec.encode(
         VectorEncodeRequest(
             data=value_rows,
-            objective="reconstruction",
-            metric="mse",
+            objective=EncodeObjective.RECONSTRUCTION,
+            metric=EncodeMetric.MSE,
             role="value_cache",
         )
     )
@@ -150,16 +151,16 @@ def test_kv_artifact_rejects_role_mismatch() -> None:
     bad_key_encoding = key_codec.encode(
         VectorEncodeRequest(
             data=key_rows,
-            objective="inner_product_estimation",
-            metric="dot_product_error",
+            objective=EncodeObjective.INNER_PRODUCT_ESTIMATION,
+            metric=EncodeMetric.DOT_PRODUCT_ERROR,
             role="value_cache",
         )
     )
     value_encoding = value_codec.encode(
         VectorEncodeRequest(
             data=value_rows,
-            objective="reconstruction",
-            metric="mse",
+            objective=EncodeObjective.RECONSTRUCTION,
+            metric=EncodeMetric.MSE,
             role="value_cache",
         )
     )
@@ -191,16 +192,16 @@ def test_kv_artifact_rejects_layout_shape_mismatch() -> None:
     key_encoding = key_codec.encode(
         VectorEncodeRequest(
             data=key_rows,
-            objective="inner_product_estimation",
-            metric="dot_product_error",
+            objective=EncodeObjective.INNER_PRODUCT_ESTIMATION,
+            metric=EncodeMetric.DOT_PRODUCT_ERROR,
             role="key_cache",
         )
     )
     value_encoding = value_codec.encode(
         VectorEncodeRequest(
             data=value_rows,
-            objective="reconstruction",
-            metric="mse",
+            objective=EncodeObjective.RECONSTRUCTION,
+            metric=EncodeMetric.MSE,
             role="value_cache",
         )
     )
@@ -232,16 +233,16 @@ def test_kv_artifact_rejects_wrong_child_variant() -> None:
     wrong_key_encoding = wrong_key_codec.encode(
         VectorEncodeRequest(
             data=key_rows,
-            objective="reconstruction",
-            metric="mse",
+            objective=EncodeObjective.RECONSTRUCTION,
+            metric=EncodeMetric.MSE,
             role="key_cache",
         )
     )
     value_encoding = value_codec.encode(
         VectorEncodeRequest(
             data=value_rows,
-            objective="reconstruction",
-            metric="mse",
+            objective=EncodeObjective.RECONSTRUCTION,
+            metric=EncodeMetric.MSE,
             role="value_cache",
         )
     )
@@ -273,16 +274,16 @@ def test_kv_artifact_rejects_outer_footprint_mismatch() -> None:
     key_encoding = key_codec.encode(
         VectorEncodeRequest(
             data=key_rows,
-            objective="inner_product_estimation",
-            metric="dot_product_error",
+            objective=EncodeObjective.INNER_PRODUCT_ESTIMATION,
+            metric=EncodeMetric.DOT_PRODUCT_ERROR,
             role="key_cache",
         )
     )
     value_encoding = value_codec.encode(
         VectorEncodeRequest(
             data=value_rows,
-            objective="reconstruction",
-            metric="mse",
+            objective=EncodeObjective.RECONSTRUCTION,
+            metric=EncodeMetric.MSE,
             role="value_cache",
         )
     )

@@ -17,7 +17,7 @@ from semafold.turboquant.kv.layout import (
     restore_cache_rows,
     validate_cache_pair,
 )
-from semafold.vector.models import VectorDecodeRequest, VectorEncodeRequest, VectorEncoding
+from semafold.vector.models import EncodeObjective, EncodeMetric, VectorDecodeRequest, VectorEncodeRequest, VectorEncoding
 
 __all__ = [
     "TurboQuantKVConfig",
@@ -28,11 +28,11 @@ __all__ = [
 
 
 _ARTIFACT_FORMAT: Final[str] = "kv_preview_v1"
-_KEY_OBJECTIVE: Final[str] = "inner_product_estimation"
-_KEY_METRIC: Final[str] = "dot_product_error"
+_KEY_OBJECTIVE: Final[EncodeObjective] = EncodeObjective.INNER_PRODUCT_ESTIMATION
+_KEY_METRIC: Final[EncodeMetric] = EncodeMetric.DOT_PRODUCT_ERROR
 _KEY_ROLE: Final[str] = "key_cache"
-_VALUE_OBJECTIVE: Final[str] = "reconstruction"
-_VALUE_METRIC: Final[str] = "mse"
+_VALUE_OBJECTIVE: Final[EncodeObjective] = EncodeObjective.RECONSTRUCTION
+_VALUE_METRIC: Final[EncodeMetric] = EncodeMetric.MSE
 _VALUE_ROLE: Final[str] = "value_cache"
 _KEY_VARIANT_ID: Final[str] = TurboQuantProdVectorCodec.variant_id
 _VALUE_VARIANT_ID: Final[str] = TurboQuantMSEVectorCodec.variant_id

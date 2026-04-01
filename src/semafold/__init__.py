@@ -8,6 +8,7 @@ from semafold.core import (
     CompressionGuarantee,
     ValidationEvidence,
 )
+from semafold.core.models import EncodingBoundType, WorkloadSuitability
 from semafold.vector import (
     PassthroughVectorCodec,
     VectorCodec,
@@ -17,6 +18,7 @@ from semafold.vector import (
     VectorEncoding,
     VectorEncodingSegment,
 )
+from semafold.vector.models import EncodeMetric, EncodeObjective, EncodingSegmentKind
 
 __all__ = [
     "__version__",
@@ -24,6 +26,10 @@ __all__ = [
     "CompressionEstimate",
     "CompressionFootprint",
     "CompressionGuarantee",
+    "EncodeMetric",
+    "EncodeObjective",
+    "EncodingBoundType",
+    "EncodingSegmentKind",
     "PassthroughVectorCodec",
     "ValidationEvidence",
     "VectorCodec",
@@ -32,4 +38,5 @@ __all__ = [
     "VectorEncodeRequest",
     "VectorEncoding",
     "VectorEncodingSegment",
+    "WorkloadSuitability",
 ]

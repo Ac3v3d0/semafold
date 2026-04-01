@@ -3,9 +3,39 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Mapping
+from enum import Enum
+from typing import Mapping, TypeVar
+__all__ = ["CompressionBudget", "CompressionGuarantee", "EncodingBoundType", "WorkloadSuitability"]
 
-__all__ = ["CompressionBudget", "CompressionGuarantee"]
+
+class EncodingBoundType(str, Enum):
+    OBSERVED = "observed"
+    PAPER_REFERENCE = "paper_reference"
+    THEOREM_REFERENCE = "theorem_reference"
+    EXACT = "exact"
+
+
+class WorkloadSuitability(str, Enum):
+    EMBEDDING_STORAGE = "embedding_storage"
+    RECONSTRUCTION_ONLY = "reconstruction_only"
+    VECTOR_DATABASE = "vector_database"
+    QUERY_TIME_INNER_PRODUCT = "query_time_inner_product"
+
+
+_TEnum = TypeVar("_TEnum", bound=Enum)
+
+
+def _coerce_enum(name: str, value: object, enum_cls: type[_TEnum]) -> _TEnum:
+    if isinstance(value, enum_cls):
+        return value
+    if isinstance(value, str):
+        try:
+            return enum_cls(value)
+        except ValueError:
+            valid = [e.value for e in enum_cls]
+            raise ValueError(f"{name} must be one of {valid!r}, got {value!r}") from None
+    raise TypeError(f"{name} must be a {enum_cls.__name__} or str, got {type(value).__name__!r}")
+
 
 def _coerce_optional_int(name: str, value: object | None) -> int | None:
     if value is None:
@@ -172,25 +202,28 @@ class CompressionGuarantee:
 
     objective: str
     metric: str
-    bound_type: str
+    bound_type: EncodingBoundType
     value: float | int | str | bool | None = None
     units: str | None = None
     scope: str | None = None
-    workload_suitability: list[str] | None = None
+    workload_suitability: list[WorkloadSuitability] | None = None
     notes: str | None = None
 
     def __post_init__(self) -> None:
         self.objective = _coerce_required_str("objective", self.objective)
         self.metric = _coerce_required_str("metric", self.metric)
-        self.bound_type = _coerce_required_str("bound_type", self.bound_type)
+        self.bound_type = _coerce_enum("bound_type", self.bound_type, EncodingBoundType)
         self.value = _coerce_guarantee_value(self.value)
         _validate_optional_str("units", self.units)
         _validate_optional_str("scope", self.scope)
         _validate_optional_str("notes", self.notes)
-        self.workload_suitability = _coerce_string_list(
-            "workload_suitability",
-            self.workload_suitability,
-        )
+        if self.workload_suitability is not None:
+            if not isinstance(self.workload_suitability, list):
+                raise TypeError("workload_suitability must be a list[WorkloadSuitability] or None")
+            self.workload_suitability = [
+                _coerce_enum("workload_suitability item", item, WorkloadSuitability)
+                for item in self.workload_suitability
+            ]
 
     def to_dict(self) -> dict[str, object]:
         """Serialize the guarantee into a JSON-friendly mapping."""
@@ -210,16 +243,20 @@ class CompressionGuarantee:
     @classmethod
     def from_dict(cls, value: dict[str, object]) -> "CompressionGuarantee":
         """Hydrate a guarantee from a validated JSON-like mapping."""
+        ws = value.get("workload_suitability")
+        if ws is not None:
+            if not isinstance(ws, list):
+                raise TypeError("workload_suitability must be a list or None")
+            workload_suitability: list[WorkloadSuitability] | None = [WorkloadSuitability(w) for w in ws]
+        else:
+            workload_suitability = None
         return cls(
             objective=_coerce_required_str("objective", value["objective"]),
             metric=_coerce_required_str("metric", value["metric"]),
-            bound_type=_coerce_required_str("bound_type", value["bound_type"]),
+            bound_type=EncodingBoundType(_coerce_required_str("bound_type", value["bound_type"])),
             value=_coerce_guarantee_value(value.get("value")),
             units=_coerce_optional_str("units", value.get("units")),
             scope=_coerce_optional_str("scope", value.get("scope")),
-            workload_suitability=_coerce_string_list(
-                "workload_suitability",
-                value.get("workload_suitability"),
-            ),
+            workload_suitability=workload_suitability,
             notes=_coerce_optional_str("notes", value.get("notes")),
         )

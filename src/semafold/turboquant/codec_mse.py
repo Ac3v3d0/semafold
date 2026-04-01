@@ -10,6 +10,7 @@ import numpy as np
 
 from semafold._version import __version__
 from semafold.core import CompressionEstimate, CompressionGuarantee, ValidationEvidence
+from semafold.core.models import EncodingBoundType, WorkloadSuitability
 from semafold.core.accounting import aggregate_footprints, json_byte_size, segment_footprint
 from semafold.errors import CompatibilityError, DecodeError
 from semafold.turboquant.codebook import (
@@ -21,6 +22,9 @@ from semafold.turboquant.packing import pack_scalar_indices, packed_byte_count, 
 from semafold.turboquant.quantizer import dequantize_rows, normalize_rows, quantize_rows, restore_rows
 from semafold.turboquant.rotation import seeded_haar_rotation
 from semafold.vector.models import (
+    EncodeMetric,
+    EncodeObjective,
+    EncodingSegmentKind,
     VectorDecodeRequest,
     VectorDecodeResult,
     VectorEncodeRequest,
@@ -166,8 +170,8 @@ class TurboQuantMSEVectorCodec:
     codec_family = "turboquant"
     variant_id = "mse_beta_lloyd_qr_v2"
     encoding_schema_version = "vector.encoding.v1"
-    _supported_objectives = {"reconstruction", "storage_only"}
-    _supported_metrics = {None, "mse", "l2"}
+    _supported_objectives = {EncodeObjective.RECONSTRUCTION, EncodeObjective.STORAGE_ONLY}
+    _supported_metrics = {None, EncodeMetric.MSE, EncodeMetric.L2}
     def __init__(self, *, config: TurboQuantMSEConfig | None = None) -> None:
         if config is not None and not isinstance(config, TurboQuantMSEConfig):
             raise TypeError("config must be a TurboQuantMSEConfig or None")
@@ -227,7 +231,7 @@ class TurboQuantMSEVectorCodec:
             codebook=codebook,
         )
         compressed_segment = VectorEncodingSegment(
-            segment_kind="compressed",
+            segment_kind=EncodingSegmentKind.COMPRESSED,
             role=request.role,
             scope=_full_scope(array_2d),
             payload=packed,
@@ -236,7 +240,7 @@ class TurboQuantMSEVectorCodec:
             metadata={},
         )
         sidecar_segment = VectorEncodingSegment(
-            segment_kind="sidecar",
+            segment_kind=EncodingSegmentKind.SIDECAR,
             role=request.role,
             scope=_full_scope(array_2d),
             payload=sidecar,
@@ -245,7 +249,7 @@ class TurboQuantMSEVectorCodec:
             metadata={},
         )
         metadata_segment = VectorEncodingSegment(
-            segment_kind="metadata",
+            segment_kind=EncodingSegmentKind.METADATA,
             role=request.role,
             scope={"kind": "encoding_metadata"},
             payload=metadata_payload,
@@ -287,21 +291,28 @@ class TurboQuantMSEVectorCodec:
             CompressionGuarantee(
                 objective=request.objective,
                 metric="observed_mse",
-                bound_type="observed",
+                bound_type=EncodingBoundType.OBSERVED,
                 value=observed_mse,
                 units="mean_squared_error",
                 scope="full_tensor",
-                workload_suitability=["embedding_storage", "reconstruction_only", "vector_database"],
+                workload_suitability=[
+                    WorkloadSuitability.EMBEDDING_STORAGE,
+                    WorkloadSuitability.RECONSTRUCTION_ONLY,
+                    WorkloadSuitability.VECTOR_DATABASE,
+                ],
                 notes="Observed reconstruction MSE for this TurboQuant preview artifact.",
             ),
             CompressionGuarantee(
-                objective="reconstruction",
+                objective=EncodeObjective.RECONSTRUCTION,
                 metric="unit_norm_row_l2_squared_distortion",
-                bound_type="paper_reference",
+                bound_type=EncodingBoundType.PAPER_REFERENCE,
                 value=paper_reference,
                 units="expected_l2_squared",
                 scope="unit_norm_row",
-                workload_suitability=["embedding_storage", "vector_database"],
+                workload_suitability=[
+                    WorkloadSuitability.EMBEDDING_STORAGE,
+                    WorkloadSuitability.VECTOR_DATABASE,
+                ],
                 notes="Theorem 1 reference constant for unit-norm rows: (sqrt(3*pi)/2) * 4^-b.",
             ),
         ]
@@ -369,9 +380,9 @@ class TurboQuantMSEVectorCodec:
         if encoding.encoding_schema_version != self.encoding_schema_version:
             raise CompatibilityError("unsupported encoding schema version")
 
-        compressed_segment = self._require_single_segment(encoding, "compressed")
-        sidecar_segment = self._require_single_segment(encoding, "sidecar")
-        metadata_segment = self._require_single_segment(encoding, "metadata")
+        compressed_segment = self._require_single_segment(encoding, EncodingSegmentKind.COMPRESSED)
+        sidecar_segment = self._require_single_segment(encoding, EncodingSegmentKind.SIDECAR)
+        metadata_segment = self._require_single_segment(encoding, EncodingSegmentKind.METADATA)
 
         if not isinstance(compressed_segment.payload, bytes):
             raise DecodeError("compressed payload must be bytes")
@@ -606,7 +617,7 @@ class TurboQuantMSEVectorCodec:
             raise DecodeError("rank-2 TurboQuant metadata is inconsistent")
 
     @staticmethod
-    def _require_single_segment(encoding: VectorEncoding, segment_kind: str) -> VectorEncodingSegment:
+    def _require_single_segment(encoding: VectorEncoding, segment_kind: EncodingSegmentKind) -> VectorEncodingSegment:
         matches = [segment for segment in encoding.segments if segment.segment_kind == segment_kind]
         if len(matches) != 1:
             raise DecodeError(f"expected exactly one {segment_kind!r} segment")

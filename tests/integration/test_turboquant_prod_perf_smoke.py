@@ -8,6 +8,7 @@ from semafold import VectorDecodeRequest
 from semafold import VectorEncodeRequest
 from semafold.turboquant import TurboQuantProdConfig
 from semafold.turboquant import TurboQuantProdVectorCodec
+from semafold.vector.models import EncodeObjective, EncodeMetric
 
 
 def test_turboquant_prod_encode_decode_perf_smoke() -> None:
@@ -22,8 +23,8 @@ def test_turboquant_prod_encode_decode_perf_smoke() -> None:
     )
     request = VectorEncodeRequest(
         data=data,
-        objective="inner_product_estimation",
-        metric="dot_product_error",
+        objective=EncodeObjective.INNER_PRODUCT_ESTIMATION,
+        metric=EncodeMetric.DOT_PRODUCT_ERROR,
     )
 
     # Warm caches so the smoke threshold tracks the steady-state hot path.

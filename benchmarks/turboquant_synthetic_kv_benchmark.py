@@ -10,6 +10,7 @@ import numpy as np
 
 from semafold import __version__
 from semafold import VectorDecodeRequest, VectorEncodeRequest
+from semafold.vector.models import EncodeObjective, EncodeMetric
 from semafold.turboquant import (
     TurboQuantMSEConfig,
     TurboQuantMSEVectorCodec,
@@ -101,8 +102,8 @@ def run_synthetic_kv_benchmark(
     )
     key_request = VectorEncodeRequest(
         data=key_rows,
-        objective="inner_product_estimation",
-        metric="dot_product_error",
+        objective=EncodeObjective.INNER_PRODUCT_ESTIMATION,
+        metric=EncodeMetric.DOT_PRODUCT_ERROR,
         role="key_cache",
     )
     key_encode_start = time.perf_counter()
@@ -124,8 +125,8 @@ def run_synthetic_kv_benchmark(
     )
     value_request = VectorEncodeRequest(
         data=value_rows,
-        objective="reconstruction",
-        metric="mse",
+        objective=EncodeObjective.RECONSTRUCTION,
+        metric=EncodeMetric.MSE,
         role="value_cache",
     )
     value_encode_start = time.perf_counter()

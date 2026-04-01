@@ -6,13 +6,17 @@ import base64
 import hashlib
 import json
 from dataclasses import dataclass, field
-from typing import Mapping
+from enum import Enum
+from typing import Mapping, TypeVar
 
 import numpy as np
 
 from semafold.core import CompressionBudget, CompressionFootprint, CompressionGuarantee, ValidationEvidence
 
 __all__ = [
+    "EncodeMetric",
+    "EncodeObjective",
+    "EncodingSegmentKind",
     "VectorDecodeRequest",
     "VectorDecodeResult",
     "VectorEncodeRequest",
@@ -21,6 +25,51 @@ __all__ = [
     "fingerprint_config",
     "normalize_to_2d",
 ]
+
+
+class EncodeObjective(str, Enum):
+    """High-level goal of an encoding request."""
+    RECONSTRUCTION = "reconstruction"
+    STORAGE_ONLY = "storage_only"
+    INNER_PRODUCT_ESTIMATION = "inner_product_estimation"
+
+
+class EncodeMetric(str, Enum):
+    """Target metric for distortion limits or budget evaluations."""
+    MSE = "mse"
+    L2 = "l2"
+    DOT_PRODUCT_ERROR = "dot_product_error"
+
+
+class EncodingSegmentKind(str, Enum):
+    """Standard classification of physical segments within an encoding."""
+    COMPRESSED = "compressed"
+    SIDECAR = "sidecar"
+    METADATA = "metadata"
+    RESIDUAL_SKETCH = "residual_sketch"
+    RESIDUAL_GAMMA = "residual_gamma"
+    PASSTHROUGH = "passthrough"
+
+
+TEnum = TypeVar("TEnum", bound=Enum)
+
+
+def _coerce_enum(name: str, value: object, enum_cls: type[TEnum]) -> TEnum:
+    if isinstance(value, enum_cls):
+        return value
+    if isinstance(value, str):
+        try:
+            return enum_cls(value)
+        except ValueError:
+            valid = [e.value for e in enum_cls]
+            raise ValueError(f"{name} must be one of {valid!r}, got {value!r}") from None
+    raise TypeError(f"{name} must be a {enum_cls.__name__} or str, got {type(value).__name__!r}")
+
+
+def _coerce_optional_enum(name: str, value: object | None, enum_cls: type[TEnum]) -> TEnum | None:
+    if value is None:
+        return None
+    return _coerce_enum(name, value, enum_cls)
 
 
 def _coerce_optional_str(name: str, value: object | None) -> str | None:
@@ -32,8 +81,8 @@ def _coerce_optional_str(name: str, value: object | None) -> str | None:
 
 
 def _coerce_required_str(name: str, value: object) -> str:
-    if not isinstance(value, str):
-        raise TypeError(f"{name} must be a string")
+    if not isinstance(value, str) or not value:
+        raise TypeError(f"{name} must be a non-empty string")
     return value
 
 
@@ -158,9 +207,9 @@ class VectorEncodeRequest:
     """
 
     data: np.ndarray
-    objective: str
+    objective: EncodeObjective
     role: str | None = None
-    metric: str | None = None
+    metric: EncodeMetric | None = None
     budget: CompressionBudget | None = None
     component_id: str | None = None
     profile_id: str | None = None
@@ -169,10 +218,9 @@ class VectorEncodeRequest:
 
     def __post_init__(self) -> None:
         self.data = _ensure_numpy_array(self.data)
-        if not isinstance(self.objective, str) or not self.objective:
-            raise TypeError("objective must be a non-empty string")
+        self.objective = _coerce_enum("objective", self.objective, EncodeObjective)
         self.role = _coerce_optional_str("role", self.role)
-        self.metric = _coerce_optional_str("metric", self.metric)
+        self.metric = _coerce_optional_enum("metric", self.metric, EncodeMetric)
         if self.budget is not None and not isinstance(self.budget, CompressionBudget):
             raise TypeError("budget must be a CompressionBudget or None")
         self.component_id = _coerce_optional_str("component_id", self.component_id)
@@ -191,7 +239,7 @@ class VectorEncodingSegment:
     envelope type for each codec family.
     """
 
-    segment_kind: str
+    segment_kind: EncodingSegmentKind
     role: str | None
     scope: dict[str, object]
     payload: bytes | dict[str, object]
@@ -200,8 +248,7 @@ class VectorEncodingSegment:
     metadata: dict[str, object] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        if not isinstance(self.segment_kind, str) or not self.segment_kind:
-            raise TypeError("segment_kind must be a non-empty string")
+        self.segment_kind = _coerce_enum("segment_kind", self.segment_kind, EncodingSegmentKind)
         self.role = _coerce_optional_str("role", self.role)
         self.scope = _coerce_object_mapping("scope", self.scope)
         if not isinstance(self.payload, (bytes, Mapping)):
@@ -216,7 +263,7 @@ class VectorEncodingSegment:
     def to_dict(self) -> dict[str, object]:
         """Serialize the segment into a JSON-friendly mapping."""
         return {
-            "segment_kind": self.segment_kind,
+            "segment_kind": self.segment_kind.value,
             "role": self.role,
             "scope": dict(self.scope),
             "payload": _encode_payload(self.payload),
@@ -232,7 +279,7 @@ class VectorEncodingSegment:
         if not isinstance(payload_wrapper, Mapping):
             raise TypeError("payload wrapper must be an object")
         return cls(
-            segment_kind=_coerce_required_str("segment_kind", value["segment_kind"]),
+            segment_kind=EncodingSegmentKind(value["segment_kind"]),
             role=_coerce_optional_str("role", value.get("role")),
             scope=_coerce_object_mapping("scope", value["scope"]),
             payload=_decode_payload(dict(payload_wrapper)),

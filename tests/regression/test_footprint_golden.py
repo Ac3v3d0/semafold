@@ -5,11 +5,12 @@ import numpy as np
 from semafold import PassthroughVectorCodec
 from semafold import VectorEncodeRequest
 from semafold.vector.codecs.scalar_reference import ScalarReferenceVectorCodec
+from semafold.vector.models import EncodeObjective
 
 
 def test_passthrough_footprint_golden() -> None:
     codec = PassthroughVectorCodec()
-    request = VectorEncodeRequest(data=np.array([1.0, 2.0], dtype=np.float32), objective="reconstruction")
+    request = VectorEncodeRequest(data=np.array([1.0, 2.0], dtype=np.float32), objective=EncodeObjective.RECONSTRUCTION)
     encoding = codec.encode(request)
     assert encoding.footprint.to_dict() == {
         "baseline_bytes": 8,
@@ -44,7 +45,7 @@ def test_passthrough_footprint_golden() -> None:
 
 def test_scalar_reference_footprint_golden() -> None:
     codec = ScalarReferenceVectorCodec()
-    request = VectorEncodeRequest(data=np.array([1.0, 2.0], dtype=np.float32), objective="reconstruction")
+    request = VectorEncodeRequest(data=np.array([1.0, 2.0], dtype=np.float32), objective=EncodeObjective.RECONSTRUCTION)
     encoding = codec.encode(request)
     assert encoding.footprint.to_dict() == {
         "baseline_bytes": 8,

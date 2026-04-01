@@ -8,6 +8,7 @@ from semafold import VectorEncodeRequest
 from semafold.vector.models import VectorEncoding
 from semafold.turboquant import TurboQuantMSEConfig
 from semafold.turboquant import TurboQuantMSEVectorCodec
+from semafold.vector.models import EncodeObjective, EncodeMetric
 
 
 @pytest.mark.parametrize(
@@ -20,8 +21,8 @@ from semafold.turboquant import TurboQuantMSEVectorCodec
 def test_turboquant_mse_consumer_wire_roundtrip_preserves_shape_profile_and_finite_decode(data: np.ndarray) -> None:
     request = VectorEncodeRequest(
         data=data,
-        objective="reconstruction",
-        metric="mse",
+        objective=EncodeObjective.RECONSTRUCTION,
+        metric=EncodeMetric.MSE,
         role="embedding",
         seed=11,
         profile_id="turboquant.mse.integration",
@@ -51,7 +52,7 @@ def test_turboquant_mse_roundtrip_serialization_is_seed_deterministic() -> None:
         ],
         dtype=np.float32,
     )
-    request = VectorEncodeRequest(data=data, objective="reconstruction", metric="mse", seed=11)
+    request = VectorEncodeRequest(data=data, objective=EncodeObjective.RECONSTRUCTION, metric=EncodeMetric.MSE, seed=11)
     codec = TurboQuantMSEVectorCodec(
         config=TurboQuantMSEConfig(default_bits_per_scalar=3, default_rotation_seed=0)
     )
@@ -65,7 +66,7 @@ def test_turboquant_mse_roundtrip_serialization_is_seed_deterministic() -> None:
 def test_turboquant_more_bits_improves_observed_mse_on_fixed_input() -> None:
     rng = np.random.default_rng(7)
     data = rng.normal(size=(6, 32)).astype(np.float32)
-    request = VectorEncodeRequest(data=data, objective="reconstruction", metric="mse", seed=5)
+    request = VectorEncodeRequest(data=data, objective=EncodeObjective.RECONSTRUCTION, metric=EncodeMetric.MSE, seed=5)
 
     low = TurboQuantMSEVectorCodec(
         config=TurboQuantMSEConfig(default_bits_per_scalar=1)

@@ -4,7 +4,10 @@ import pytest
 
 from semafold import CompressionBudget
 from semafold import CompressionGuarantee
+from semafold import EncodingBoundType, WorkloadSuitability
 from semafold import ValidationEvidence
+from semafold.core.models import EncodingBoundType, WorkloadSuitability
+from semafold.vector.models import EncodeObjective, EncodeMetric
 
 
 def test_budget_copies_metadata() -> None:
@@ -38,29 +41,29 @@ def test_budget_rejects_non_string_metadata_keys() -> None:
 
 def test_guarantee_requires_strings() -> None:
     with pytest.raises(TypeError):
-        CompressionGuarantee(objective="", metric="mse", bound_type="observed")
+        CompressionGuarantee(objective="", metric=EncodeMetric.MSE, bound_type=EncodingBoundType.OBSERVED)
 
 
 def test_guarantee_rejects_invalid_value_type() -> None:
     with pytest.raises(TypeError):
         CompressionGuarantee(
-            objective="reconstruction",
-            metric="mse",
-            bound_type="observed",
+            objective=EncodeObjective.RECONSTRUCTION,
+            metric=EncodeMetric.MSE,
+            bound_type=EncodingBoundType.OBSERVED,
             value={"not": "scalar"},  # type: ignore[arg-type]
         )
 
 
 def test_guarantee_copies_workload_suitability() -> None:
-    workload_suitability = ["embedding_storage"]
+    workload_suitability = [WorkloadSuitability.EMBEDDING_STORAGE]
     guarantee = CompressionGuarantee(
-        objective="reconstruction",
-        metric="mse",
-        bound_type="observed",
+        objective=EncodeObjective.RECONSTRUCTION,
+        metric=EncodeMetric.MSE,
+        bound_type=EncodingBoundType.OBSERVED,
         workload_suitability=workload_suitability,
     )
-    workload_suitability.append("cache_decode")
-    assert guarantee.workload_suitability == ["embedding_storage"]
+    workload_suitability.append(WorkloadSuitability.VECTOR_DATABASE)
+    assert guarantee.workload_suitability == [WorkloadSuitability.EMBEDDING_STORAGE]
 
 
 def test_guarantee_from_dict_rejects_non_string_required_fields() -> None:

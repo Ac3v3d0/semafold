@@ -4,4 +4,4 @@ import semafold
 
 
 def test_import_smoke() -> None:
-    assert semafold.__version__ == "0.1.0"
+    assert semafold.__version__ == "0.2.0"

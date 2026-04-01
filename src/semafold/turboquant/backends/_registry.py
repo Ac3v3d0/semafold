@@ -45,7 +45,7 @@ def _try_load_torch() -> ComputeBackend | None:
 
 def _try_load_mlx() -> ComputeBackend | None:
     try:
-        import mlx.core  # noqa: F811
+        import mlx.core  # noqa: F401
     except ImportError:
         return None
     from semafold.turboquant.backends._mlx import MLXBackend

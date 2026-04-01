@@ -8,6 +8,7 @@ from semafold import PassthroughVectorCodec
 from semafold import VectorDecodeRequest
 from semafold import VectorEncodeRequest
 from semafold import VectorEncoding
+from semafold.vector.models import EncodeObjective
 
 
 def _format_bytes(value: int) -> str:
@@ -33,7 +34,7 @@ def main() -> None:
     codec = PassthroughVectorCodec()
     request = VectorEncodeRequest(
         data=np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32),
-        objective="reconstruction",
+        objective=EncodeObjective.RECONSTRUCTION,
         role="embedding",
         profile_id="examples.wire_roundtrip",
     )

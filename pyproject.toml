@@ -42,7 +42,4 @@ include = ["src", "tests", "examples", "benchmarks"]
 typeCheckingMode = "basic"
 venvPath = "."
 venv = ".venv"
-# Optional backends (torch, mlx) are not installed in the base dev environment.
-# reportMissingImports is silenced so pyright does not error on those packages;
-# structural type errors in those files are still caught.
-reportMissingImports = "none"
+

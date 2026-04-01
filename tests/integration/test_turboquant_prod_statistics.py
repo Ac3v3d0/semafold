@@ -11,6 +11,7 @@ from semafold.turboquant import TurboQuantMSEConfig
 from semafold.turboquant import TurboQuantMSEVectorCodec
 from semafold.turboquant import TurboQuantProdConfig
 from semafold.turboquant import TurboQuantProdVectorCodec
+from semafold.vector.models import EncodeObjective, EncodeMetric
 
 _MONTE_CARLO_SAMPLES = 256
 _DIMENSION = 32
@@ -46,8 +47,8 @@ def _prod_inner_product_errors(
         encoding = codec.encode(
             VectorEncodeRequest(
                 data=x,
-                objective="inner_product_estimation",
-                metric="dot_product_error",
+                objective=EncodeObjective.INNER_PRODUCT_ESTIMATION,
+                metric=EncodeMetric.DOT_PRODUCT_ERROR,
             )
         )
         if variance_bound is None:
@@ -77,8 +78,8 @@ def _mse_inner_product_errors(
         encoding = codec.encode(
             VectorEncodeRequest(
                 data=x,
-                objective="reconstruction",
-                metric="mse",
+                objective=EncodeObjective.RECONSTRUCTION,
+                metric=EncodeMetric.MSE,
                 seed=rotation_seed,
             )
         )

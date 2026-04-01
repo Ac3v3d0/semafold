@@ -6,12 +6,13 @@ from semafold import PassthroughVectorCodec
 from semafold import VectorEncoding
 from semafold import VectorEncodeRequest
 from semafold.vector.codecs.scalar_reference import ScalarReferenceVectorCodec
+from semafold.vector.models import EncodeObjective
 
 
 def test_schema_version_is_consistent() -> None:
     payload = np.array([1.0, 2.0], dtype=np.float32)
-    passthrough = PassthroughVectorCodec().encode(VectorEncodeRequest(data=payload, objective="reconstruction"))
-    scalar = ScalarReferenceVectorCodec().encode(VectorEncodeRequest(data=payload, objective="reconstruction"))
+    passthrough = PassthroughVectorCodec().encode(VectorEncodeRequest(data=payload, objective=EncodeObjective.RECONSTRUCTION))
+    scalar = ScalarReferenceVectorCodec().encode(VectorEncodeRequest(data=payload, objective=EncodeObjective.RECONSTRUCTION))
     assert passthrough.encoding_schema_version == "vector.encoding.v1"
     assert scalar.encoding_schema_version == "vector.encoding.v1"
 
@@ -19,10 +20,10 @@ def test_schema_version_is_consistent() -> None:
 def test_schema_and_variant_identity_survive_wire_roundtrip() -> None:
     payload = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     passthrough = PassthroughVectorCodec().encode(
-        VectorEncodeRequest(data=payload, objective="reconstruction", profile_id="consumer.passthrough")
+        VectorEncodeRequest(data=payload, objective=EncodeObjective.RECONSTRUCTION, profile_id="consumer.passthrough")
     )
     scalar = ScalarReferenceVectorCodec().encode(
-        VectorEncodeRequest(data=payload, objective="reconstruction", profile_id="consumer.scalar")
+        VectorEncodeRequest(data=payload, objective=EncodeObjective.RECONSTRUCTION, profile_id="consumer.scalar")
     )
 
     passthrough_wire = VectorEncoding.from_dict(passthrough.to_dict())
